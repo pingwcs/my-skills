@@ -150,6 +150,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "skills_source",
         type=Path,
+        default="../skills",
         help="directory whose direct child Skill folders contain SKILL.md",
     )
     parser.add_argument(
