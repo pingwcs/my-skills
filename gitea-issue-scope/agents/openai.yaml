@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gitea Issue Scope"
+  short_description: "Read and manage Gitea issues and attachments"
+  default_prompt: "Use $gitea-issue-scope to inspect or perform an explicitly requested change to a Gitea issue."

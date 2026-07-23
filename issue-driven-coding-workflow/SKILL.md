@@ -27,7 +27,7 @@ Always:
 - Put all tests in Git-ignored `.tmp/`; never commit them.
 - Never use `gitea-issue-triage`, `gitea-issue-execution`, or a Gitea marked plan for the change.
 
-Try to run OpenSpec CLI in host locally. If the OpenSpec CLI or required artifacts are unavailable, block planning or implementation. Do not replace OpenSpec with a Gitea plan. Trust capability-returned schemas, paths, and states rather than assumed filenames.
+Try to search OpenSpec CLI out of sandbox. If the OpenSpec CLI or required artifacts are unavailable, block planning or implementation. Do not replace OpenSpec with a Gitea plan. Trust capability-returned schemas, paths, and states rather than assumed filenames.
 
 ## Capability Map
 
