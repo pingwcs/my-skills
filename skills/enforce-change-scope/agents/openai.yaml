@@ -1,4 +1,0 @@
-interface:
-  display_name: "Enforce Change Scope"
-  short_description: "Keep branches, commits, and PRs reviewable"
-  default_prompt: "Use $enforce-change-scope to keep this change within branch, commit, and PR scope limits."

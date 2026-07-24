@@ -1,0 +1,4 @@
+interface:
+  display_name: "Enforce Branch Change Scope"
+  short_description: "Bound production changes per branch"
+  default_prompt: "Use $enforce-branch-change-scope to define and enforce a reviewable production-code scope for each branch."
