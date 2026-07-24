@@ -1,4 +1,0 @@
-interface:
-  display_name: "Gitea Issue Decomposition"
-  short_description: "Grill issue scope and create feature branches"
-  default_prompt: "Use $gitea-issue-decomposition to clarify this issue and create its confirmed local feature branches."

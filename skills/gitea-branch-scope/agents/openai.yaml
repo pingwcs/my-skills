@@ -1,4 +1,0 @@
-interface:
-  display_name: "Gitea Branch Scope"
-  short_description: "Create branches, commit, push, and deliver PRs"
-  default_prompt: "Use $gitea-branch-scope to manage the branch and PR lifecycle for an already scoped change."

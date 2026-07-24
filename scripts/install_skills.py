@@ -11,6 +11,9 @@ from pathlib import Path
 from typing import NamedTuple, Sequence
 
 
+DEFAULT_SKILLS_SOURCE = Path(__file__).resolve().parents[1] / "skills"
+
+
 class InstallError(RuntimeError):
     """Raised when the Skill installation cannot complete safely."""
 
@@ -149,9 +152,10 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "skills_source",
+        nargs="?",
         type=Path,
-        default="../skills",
-        help="directory whose direct child Skill folders contain SKILL.md",
+        default=DEFAULT_SKILLS_SOURCE,
+        help="directory whose direct child Skill folders contain SKILL.md (default: project skills/)",
     )
     parser.add_argument(
         "--codex-home",

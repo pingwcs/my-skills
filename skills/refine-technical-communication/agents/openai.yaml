@@ -1,0 +1,4 @@
+interface:
+  display_name: "Refine Technical Communication"
+  short_description: "Make technical communication precise and engineer-friendly"
+  default_prompt: "Use $refine-technical-communication to make all technical content in this conversation precise, terminology-consistent, and clear to software engineers."
