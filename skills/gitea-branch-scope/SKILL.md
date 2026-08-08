@@ -5,7 +5,7 @@ description: Manage the local and remote lifecycle of an already scoped change, 
 
 # Gitea Branch Scope
 
-Manage Git branches and pull requests without implementing or redesigning the change. Use only the pull-request and repository-label capabilities exposed by Gitea MCP initialization.
+Manage Git branches and pull requests without implementing or redesigning the change. implementation with Gitea MCP.
 
 ## Prepare branches
 
