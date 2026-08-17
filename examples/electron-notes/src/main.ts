@@ -1,15 +1,16 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import { notesChannels, type Note, type NoteUpdate } from './contracts.js';
+import { NoteStore } from './note-store.js';
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
 declare const MAIN_WINDOW_VITE_NAME: string;
 
-const notes: Note[] = [
+const initialNotes: Note[] = [
   {
     id: 'welcome',
     title: '欢迎来到 Electron Notes',
-    body: '笔记数据现在由主进程保存在内存中。\n\n试着修改标题或正文，再创建一篇笔记。重启应用后仍会恢复初始内容。',
+    body: '笔记数据现在由主进程保存在 userData 目录。\n\n试着修改标题或正文，再创建一篇笔记；重启应用后，内容仍然存在。',
     updatedAt: Date.now(),
   },
   {
@@ -19,10 +20,6 @@ const notes: Note[] = [
     updatedAt: Date.now() - 30 * 60 * 1000,
   },
 ];
-
-function cloneNote(note: Note): Note {
-  return { ...note };
-}
 
 function requireRecord(value: unknown, label: string): Record<string, unknown> {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
@@ -52,32 +49,15 @@ function parseUpdate(value: unknown): NoteUpdate {
   };
 }
 
-function findNote(id: string): Note {
-  const note = notes.find((candidate) => candidate.id === id);
-  if (!note) throw new Error('找不到要操作的笔记');
-  return note;
-}
-
-function registerNotesHandlers(): void {
-  ipcMain.handle(notesChannels.list, () => notes.map(cloneNote));
-  ipcMain.handle(notesChannels.create, () => {
-    const note: Note = {
-      id: crypto.randomUUID(),
-      title: '',
-      body: '',
-      updatedAt: Date.now(),
-    };
-    notes.unshift(note);
-    return cloneNote(note);
-  });
-  ipcMain.handle(notesChannels.select, (_event, input: unknown) =>
-    cloneNote(findNote(requireId(input))),
+function registerNotesHandlers(storeReady: Promise<NoteStore>): void {
+  ipcMain.handle(notesChannels.list, async () => (await storeReady).list());
+  ipcMain.handle(notesChannels.create, async () => (await storeReady).create());
+  ipcMain.handle(notesChannels.select, async (_event, input: unknown) =>
+    (await storeReady).select(requireId(input)),
   );
-  ipcMain.handle(notesChannels.update, (_event, input: unknown) => {
+  ipcMain.handle(notesChannels.update, async (_event, input: unknown) => {
     const update = parseUpdate(input);
-    const note = findNote(update.id);
-    Object.assign(note, { title: update.title, body: update.body, updatedAt: Date.now() });
-    return cloneNote(note);
+    return (await storeReady).update(update);
   });
 }
 
@@ -110,7 +90,13 @@ function createWindow(): void {
 }
 
 void app.whenReady().then(() => {
-  registerNotesHandlers();
+  const store = new NoteStore(
+    path.join(app.getPath('userData'), 'notes', 'notes.json'),
+    initialNotes,
+  );
+  const storeReady = store.initialize().then(() => store);
+  void storeReady.catch(() => undefined);
+  registerNotesHandlers(storeReady);
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
