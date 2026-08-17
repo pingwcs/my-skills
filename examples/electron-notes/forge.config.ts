@@ -4,8 +4,22 @@ import { MakerZIP } from '@electron-forge/maker-zip';
 import { VitePlugin } from '@electron-forge/plugin-vite';
 
 const config: ForgeConfig = {
-  packagerConfig: { asar: true },
-  makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin'])],
+  packagerConfig: {
+    asar: true,
+    appBundleId: 'com.bughub.electronnotes',
+    executableName: 'Electron Notes',
+  },
+  makers: [
+    new MakerSquirrel(
+      {
+        name: 'ElectronNotes',
+        authors: 'Electron Notes Tutorial Contributors',
+        description: '贯穿 Electron 教程的本地笔记应用',
+      },
+      ['win32'],
+    ),
+    new MakerZIP({}, ['darwin']),
+  ],
   plugins: [
     new VitePlugin({
       build: [

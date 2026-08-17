@@ -2,6 +2,8 @@
   "name": "electron-notes-tutorial",
   "version": "1.0.0",
   "private": true,
+  "productName": "Electron Notes",
+  "author": "Electron Notes Tutorial Contributors",
   "description": "贯穿 Electron 教程的本地笔记应用",
   "main": ".vite/build/main.js",
   "scripts": {
@@ -11,7 +13,8 @@
     "security:check": "node scripts/security-check.mjs",
     "verify": "npm run lint && npm run typecheck && npm run security:check",
     "package": "electron-forge package",
-    "make": "electron-forge make"
+    "make": "electron-forge make",
+    "artifact:check": "node scripts/artifact-check.mjs"
   },
   "devDependencies": {
     "@electron-forge/cli": "7.11.2",
