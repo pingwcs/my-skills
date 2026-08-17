@@ -1,8 +1,85 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
+import { notesChannels, type Note, type NoteUpdate } from './contracts.js';
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
 declare const MAIN_WINDOW_VITE_NAME: string;
+
+const notes: Note[] = [
+  {
+    id: 'welcome',
+    title: '欢迎来到 Electron Notes',
+    body: '笔记数据现在由主进程保存在内存中。\n\n试着修改标题或正文，再创建一篇笔记。重启应用后仍会恢复初始内容。',
+    updatedAt: Date.now(),
+  },
+  {
+    id: 'learning',
+    title: '我的 Electron 学习清单',
+    body: '• 理解 BrowserWindow 生命周期\n• 区分 main 与 renderer 的职责\n• 使用窄范围、类型化 IPC',
+    updatedAt: Date.now() - 30 * 60 * 1000,
+  },
+];
+
+function cloneNote(note: Note): Note {
+  return { ...note };
+}
+
+function requireRecord(value: unknown, label: string): Record<string, unknown> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new Error(`${label} 必须是对象`);
+  }
+  return value as Record<string, unknown>;
+}
+
+function requireBoundedString(value: unknown, label: string, maxLength: number): string {
+  if (typeof value !== 'string') throw new Error(`${label} 必须是字符串`);
+  if (value.length > maxLength) throw new Error(`${label}不能超过 ${maxLength} 个字符`);
+  return value;
+}
+
+function requireId(value: unknown): string {
+  const id = requireBoundedString(value, '笔记 ID', 128);
+  if (id.length === 0) throw new Error('笔记 ID 不能为空');
+  return id;
+}
+
+function parseUpdate(value: unknown): NoteUpdate {
+  const input = requireRecord(value, '更新参数');
+  return {
+    id: requireId(input.id),
+    title: requireBoundedString(input.title, '标题', 80),
+    body: requireBoundedString(input.body, '正文', 100_000),
+  };
+}
+
+function findNote(id: string): Note {
+  const note = notes.find((candidate) => candidate.id === id);
+  if (!note) throw new Error('找不到要操作的笔记');
+  return note;
+}
+
+function registerNotesHandlers(): void {
+  ipcMain.handle(notesChannels.list, () => notes.map(cloneNote));
+  ipcMain.handle(notesChannels.create, () => {
+    const note: Note = {
+      id: crypto.randomUUID(),
+      title: '',
+      body: '',
+      updatedAt: Date.now(),
+    };
+    notes.unshift(note);
+    return cloneNote(note);
+  });
+  ipcMain.handle(notesChannels.select, (_event, input: unknown) =>
+    cloneNote(findNote(requireId(input))),
+  );
+  ipcMain.handle(notesChannels.update, (_event, input: unknown) => {
+    const update = parseUpdate(input);
+    const note = findNote(update.id);
+    Object.assign(note, { title: update.title, body: update.body, updatedAt: Date.now() });
+    return cloneNote(note);
+  });
+}
 
 function createWindow(): void {
   const window = new BrowserWindow({
@@ -33,6 +110,7 @@ function createWindow(): void {
 }
 
 void app.whenReady().then(() => {
+  registerNotesHandlers();
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
