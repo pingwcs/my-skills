@@ -2,6 +2,12 @@ import { app, BrowserWindow, dialog, ipcMain, Menu, type MenuItemConstructorOpti
 import path from 'node:path';
 import { appChannels, notesChannels, type MenuCommand, type Note, type NoteUpdate } from './contracts.js';
 import { NoteStore } from './note-store.js';
+import {
+  assertTrustedSender,
+  installSessionSecurity,
+  installWebContentsSecurity,
+  type ApplicationSource,
+} from './security.js';
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
 declare const MAIN_WINDOW_VITE_NAME: string;
@@ -49,13 +55,21 @@ function parseUpdate(value: unknown): NoteUpdate {
   };
 }
 
-function registerNotesHandlers(storeReady: Promise<NoteStore>): void {
-  ipcMain.handle(notesChannels.list, async () => (await storeReady).list());
-  ipcMain.handle(notesChannels.create, async () => (await storeReady).create());
-  ipcMain.handle(notesChannels.select, async (_event, input: unknown) =>
-    (await storeReady).select(requireId(input)),
-  );
-  ipcMain.handle(notesChannels.update, async (_event, input: unknown) => {
+function registerNotesHandlers(storeReady: Promise<NoteStore>, source: ApplicationSource): void {
+  ipcMain.handle(notesChannels.list, async (event) => {
+    assertTrustedSender(event, source);
+    return (await storeReady).list();
+  });
+  ipcMain.handle(notesChannels.create, async (event) => {
+    assertTrustedSender(event, source);
+    return (await storeReady).create();
+  });
+  ipcMain.handle(notesChannels.select, async (event, input: unknown) => {
+    assertTrustedSender(event, source);
+    return (await storeReady).select(requireId(input));
+  });
+  ipcMain.handle(notesChannels.update, async (event, input: unknown) => {
+    assertTrustedSender(event, source);
     const update = parseUpdate(input);
     return (await storeReady).update(update);
   });
@@ -158,14 +172,23 @@ function createWindow(): void {
   }
 }
 
+const applicationSource: ApplicationSource = {
+  devOrigin: MAIN_WINDOW_VITE_DEV_SERVER_URL
+    ? new URL(MAIN_WINDOW_VITE_DEV_SERVER_URL).origin
+    : undefined,
+  rendererRoot: path.resolve(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}`),
+};
+installWebContentsSecurity(applicationSource);
+
 void app.whenReady().then(() => {
+  installSessionSecurity(applicationSource);
   const store = new NoteStore(
     path.join(app.getPath('userData'), 'notes', 'notes.json'),
     initialNotes,
   );
   const storeReady = store.initialize().then(() => store);
   void storeReady.catch(() => undefined);
-  registerNotesHandlers(storeReady);
+  registerNotesHandlers(storeReady, applicationSource);
   installApplicationMenu(storeReady);
   createWindow();
   app.on('activate', () => {
