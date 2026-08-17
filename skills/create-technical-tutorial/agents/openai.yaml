@@ -1,0 +1,4 @@
+interface:
+  display_name: "创建体系化技术教程"
+  short_description: "生成完整技术教程、可运行代码环境、教学 demo 与配置附录"
+  default_prompt: "使用 $create-technical-tutorial 为指定技术主题创建教程，并同步生成可直接运行的代码环境与配置附录。"

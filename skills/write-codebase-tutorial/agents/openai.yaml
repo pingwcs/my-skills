@@ -1,0 +1,4 @@
+interface:
+  display_name: "编写代码库教程"
+  short_description: "从真实代码库提炼严谨、可验证且渐进式的中文技术教程"
+  default_prompt: "使用 $write-codebase-tutorial 从指定代码库编写一套可实践、可验收的中文技术教程。"
