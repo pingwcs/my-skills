@@ -1,12 +1,50 @@
 :root {
-  color: #20201d;
-  background: #f3f0e8;
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  color: #24251f;
+  background: #e9e6dc;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-synthesis: none;
 }
 
-body { margin: 0; min-width: 320px; min-height: 100vh; }
-.shell { max-width: 760px; margin: 0 auto; padding: 72px 32px; }
-.eyebrow { color: #c04b2b; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
-h1 { margin: 8px 0; font-family: Georgia, serif; font-size: clamp(42px, 8vw, 72px); line-height: 1; }
-#status { color: #5e5a50; }
-.empty { margin-top: 48px; padding: 64px 24px; border: 1px dashed #aaa394; border-radius: 16px; color: #716b5e; text-align: center; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; overflow: hidden; }
+button, input, textarea { font: inherit; }
+button { color: inherit; }
+.app-shell { display: grid; grid-template-columns: 340px minmax(0, 1fr); min-height: 100vh; }
+.sidebar { display: flex; min-width: 0; flex-direction: column; padding: 34px 24px 20px; border-right: 1px solid #d4d0c4; background: #f5f2e9; }
+.brand { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.eyebrow { margin: 0 0 5px; color: #9e4e35; font-size: 10px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+h1 { margin: 0; font-family: Georgia, serif; font-size: 30px; font-weight: 500; letter-spacing: -.03em; }
+.new-note { width: 42px; height: 42px; border: 0; border-radius: 50%; background: #26382c; color: white; font-size: 26px; line-height: 1; cursor: pointer; box-shadow: 0 8px 18px #26382c2e; }
+.new-note:hover { background: #395342; transform: translateY(-1px); }
+.new-note:focus-visible, .note-card:focus-visible, .empty-state button:focus-visible { outline: 3px solid #b86848; outline-offset: 2px; }
+.runtime { margin: 14px 0 24px; color: #817b6e; font-size: 12px; }
+.note-list { display: grid; gap: 8px; overflow-y: auto; margin: 0 -8px; padding: 0 8px; }
+.note-card { position: relative; display: grid; width: 100%; grid-template-columns: 1fr auto; gap: 7px 12px; padding: 16px; border: 1px solid transparent; border-radius: 12px; background: transparent; text-align: left; cursor: pointer; }
+.note-card:hover { background: #ebe7dc; }
+.note-card[aria-current="true"] { border-color: #d7d1c2; background: #fffdf7; box-shadow: 0 8px 24px #4a44361a; }
+.note-card[aria-current="true"]::before { position: absolute; top: 14px; bottom: 14px; left: -1px; width: 3px; border-radius: 3px; background: #b85f40; content: ''; }
+.note-card strong { overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.note-card span { grid-column: 1 / -1; overflow: hidden; color: #777164; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.note-card time { color: #9a9385; font-size: 11px; }
+.list-empty { color: #817b6e; font-size: 13px; line-height: 1.6; }
+.sidebar footer { display: flex; justify-content: space-between; margin-top: auto; padding-top: 20px; color: #918a7d; font-size: 11px; }
+.workspace { min-width: 0; background: #fffdf8; }
+.empty-state { display: grid; height: 100vh; place-content: center; justify-items: center; padding: 40px; color: #777164; text-align: center; }
+.empty-mark { color: #b85f40; font-family: Georgia, serif; font-size: 42px; }
+.empty-state h2 { margin: 15px 0 4px; color: #35362f; font-family: Georgia, serif; font-size: 28px; font-weight: 500; }
+.empty-state p { margin: 0 0 22px; }
+.empty-state button { padding: 10px 16px; border: 1px solid #cbc5b7; border-radius: 9px; background: transparent; cursor: pointer; }
+.editor { display: flex; height: 100vh; flex-direction: column; padding: 58px clamp(42px, 7vw, 92px) 40px; }
+.editor[hidden], .empty-state[hidden] { display: none; }
+.title-input { width: 100%; border: 0; outline: 0; background: transparent; color: #24251f; font-family: Georgia, serif; font-size: clamp(34px, 5vw, 54px); line-height: 1.08; }
+.title-input::placeholder, textarea::placeholder { color: #b5afa2; }
+.editor-meta { display: flex; gap: 16px; margin: 18px 0 30px; color: #928b7e; font-size: 11px; }
+.save-state { color: #607561; }
+textarea { width: 100%; flex: 1; resize: none; border: 0; outline: 0; background: transparent; color: #48483f; font-family: Georgia, serif; font-size: 18px; line-height: 1.8; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; margin: -1px; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+
+@media (max-width: 900px) {
+  .app-shell { grid-template-columns: 280px minmax(0, 1fr); }
+  .sidebar { padding-inline: 18px; }
+  .editor { padding-inline: 38px; }
+}

@@ -6,10 +6,13 @@ declare const MAIN_WINDOW_VITE_NAME: string;
 
 function createWindow(): void {
   const window = new BrowserWindow({
-    width: 960,
-    height: 680,
-    minWidth: 720,
-    minHeight: 520,
+    title: 'Electron Notes',
+    width: 1180,
+    height: 760,
+    minWidth: 820,
+    minHeight: 600,
+    show: false,
+    backgroundColor: '#f4f1e8',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -17,6 +20,8 @@ function createWindow(): void {
       sandbox: true,
     },
   });
+
+  window.once('ready-to-show', () => window.show());
 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     void window.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
