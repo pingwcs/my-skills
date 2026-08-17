@@ -22,7 +22,7 @@ let selectedId: string | null = null;
 let updateQueue = Promise.resolve();
 
 function showReady(): void {
-  status.textContent = `运行平台：${window.desktop.platform} · 主进程内存仓库已连接`;
+  status.textContent = `运行平台：${window.desktop.platform} · 本地笔记仓库已连接`;
 }
 
 function showError(error: unknown): void {
