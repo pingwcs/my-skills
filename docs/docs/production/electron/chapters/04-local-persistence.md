@@ -32,7 +32,7 @@ sequenceDiagram
   participant R as renderer
   participant M as ipcMain handler
   participant S as NoteStore
-  participant T as notes.json.tmp
+  participant T as notes.json.&lt;PID&gt;.tmp
   participant F as notes.json
   R->>M: create / update
   M->>M: 校验 unknown 输入
@@ -121,14 +121,14 @@ this.writeQueue = pending.catch(() => undefined);
 
 ### 第 6 步：临时文件完成后再替换目标
 
-直接对 `notes.json` 调用 `writeFile()` 时，进程崩溃或磁盘写满可能留下截断 JSON。本章先完整写入同目录的 `notes.json.tmp`，再用 `rename()` 替换目标：
+直接对 `notes.json` 调用 `writeFile()` 时，进程崩溃或磁盘写满可能留下截断 JSON。本章先完整写入同目录的 `notes.json.<PID>.tmp`，再用 `rename()` 替换目标：
 
 ```ts
 await writeFile(temporaryPath, serialized, 'utf8');
 await rename(temporaryPath, this.filePath);
 ```
 
-同目录可避免跨文件系统 rename。这个模式降低“目标文件只写了一半”的风险，但不是完整 durability 保证：教程没有 `fsync` 文件及父目录，也没有处理多进程竞争、备份轮换或磁盘级损坏。
+同目录可避免跨文件系统 rename。PID 让不同应用实例通常使用不同临时文件名，降低临时名碰撞；它不是跨实例锁，两个实例仍可能先后 rename 并覆盖彼此的结果。这个模式降低“目标文件只写了一半”的风险，但不是完整 durability 保证：教程没有 `fsync` 文件及父目录，也没有处理多进程竞争、备份轮换或磁盘级损坏。
 
 ### 第 7 步：保持 IPC 行为不变
 
@@ -149,7 +149,7 @@ preload 和 renderer 不知道 JSON 路径，也不需要因存储实现变化�
 
 ```ts
 const target = path.join(app.getPath('userData'), 'notes', 'notes.json');
-const temporary = `${target}.tmp`;
+const temporary = `${target}.${process.pid}.tmp`;
 await mkdir(path.dirname(target), { recursive: true });
 await writeFile(temporary, JSON.stringify(notes), 'utf8');
 await rename(temporary, target);
