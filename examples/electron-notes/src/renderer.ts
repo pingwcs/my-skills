@@ -140,4 +140,26 @@ async function initialize(): Promise<void> {
   }
 }
 
+window.desktop.app.onMenuCommand((command) => {
+  if (command.type === 'new') {
+    void createNote();
+    return;
+  }
+  if (command.type === 'status') {
+    status.textContent = command.message;
+    return;
+  }
+  void (async () => {
+    try {
+      notes = await window.desktop.notes.list();
+      selectedId = notes.some((note) => note.id === selectedId) ? selectedId : (notes[0]?.id ?? null);
+      renderList();
+      renderEditor();
+      status.textContent = command.message;
+    } catch (error) {
+      showError(error);
+    }
+  })();
+});
+
 void initialize();

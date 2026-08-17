@@ -18,9 +18,22 @@ export interface NotesAPI {
   update(input: NoteUpdate): Promise<Note>;
 }
 
+export type MenuCommand =
+  | { type: 'new' }
+  | { type: 'refresh'; message: string }
+  | { type: 'status'; message: string };
+
+export interface AppAPI {
+  onMenuCommand(listener: (command: MenuCommand) => void): () => void;
+}
+
 export const notesChannels = {
   list: 'notes:list',
   create: 'notes:create',
   select: 'notes:select',
   update: 'notes:update',
+} as const;
+
+export const appChannels = {
+  menuCommand: 'app:menu-command',
 } as const;

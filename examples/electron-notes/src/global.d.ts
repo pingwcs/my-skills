@@ -1,9 +1,9 @@
 export {};
 
-import type { NotesAPI } from './contracts.js';
+import type { AppAPI, NotesAPI } from './contracts.js';
 
 declare global {
   interface Window {
-    desktop: { platform: NodeJS.Platform; notes: NotesAPI };
+    desktop: { platform: NodeJS.Platform; notes: NotesAPI; app: AppAPI };
   }
 }

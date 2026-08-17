@@ -1,6 +1,6 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, type MenuItemConstructorOptions } from 'electron';
 import path from 'node:path';
-import { notesChannels, type Note, type NoteUpdate } from './contracts.js';
+import { appChannels, notesChannels, type MenuCommand, type Note, type NoteUpdate } from './contracts.js';
 import { NoteStore } from './note-store.js';
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined;
@@ -61,6 +61,75 @@ function registerNotesHandlers(storeReady: Promise<NoteStore>): void {
   });
 }
 
+function sendMenuCommand(command: MenuCommand, window = BrowserWindow.getFocusedWindow()): void {
+  if (window && !window.isDestroyed()) window.webContents.send(appChannels.menuCommand, command);
+}
+
+async function importNotes(storeReady: Promise<NoteStore>): Promise<void> {
+  const window = BrowserWindow.getFocusedWindow();
+  if (!window) return;
+  try {
+    const result = await dialog.showOpenDialog(window, {
+      title: '导入笔记',
+      properties: ['openFile'],
+      filters: [{ name: 'JSON', extensions: ['json'] }],
+    });
+    if (result.canceled || !result.filePaths[0]) return;
+    const count = await (await storeReady).importFrom(result.filePaths[0]);
+    sendMenuCommand({ type: 'refresh', message: `已导入 ${count} 篇笔记` }, window);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    sendMenuCommand({ type: 'status', message: `导入失败：${reason}（现有数据未更改）` }, window);
+  }
+}
+
+async function exportNotes(storeReady: Promise<NoteStore>): Promise<void> {
+  const window = BrowserWindow.getFocusedWindow();
+  if (!window) return;
+  try {
+    const result = await dialog.showSaveDialog(window, {
+      title: '导出笔记',
+      defaultPath: 'electron-notes.json',
+      filters: [{ name: 'JSON', extensions: ['json'] }],
+    });
+    if (result.canceled || !result.filePath) return;
+    const count = await (await storeReady).exportTo(result.filePath);
+    sendMenuCommand({ type: 'status', message: `已导出 ${count} 篇笔记` }, window);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    sendMenuCommand({ type: 'status', message: `导出失败：${reason}` }, window);
+  }
+}
+
+function installApplicationMenu(storeReady: Promise<NoteStore>): void {
+  const fileMenu: MenuItemConstructorOptions = {
+    label: '文件',
+    submenu: [
+      { label: '新建笔记', accelerator: 'CmdOrCtrl+N', click: () => sendMenuCommand({ type: 'new' }) },
+      { type: 'separator' },
+      { label: '导入 JSON…', accelerator: 'CmdOrCtrl+O', click: () => void importNotes(storeReady) },
+      { label: '导出 JSON…', accelerator: 'CmdOrCtrl+Shift+S', click: () => void exportNotes(storeReady) },
+      ...(process.platform === 'darwin' ? [] : [{ type: 'separator' as const }, { role: 'quit' as const }]),
+    ],
+  };
+  const template: MenuItemConstructorOptions[] = [
+    ...(process.platform === 'darwin' ? [{ role: 'appMenu' as const }] : []),
+    fileMenu,
+    { role: 'editMenu' },
+    {
+      label: '视图',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forceReload' },
+        { type: 'separator' },
+        { role: 'toggleDevTools' },
+      ],
+    },
+    { role: 'windowMenu' },
+  ];
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+}
+
 function createWindow(): void {
   const window = new BrowserWindow({
     title: 'Electron Notes',
@@ -97,6 +166,7 @@ void app.whenReady().then(() => {
   const storeReady = store.initialize().then(() => store);
   void storeReady.catch(() => undefined);
   registerNotesHandlers(storeReady);
+  installApplicationMenu(storeReady);
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

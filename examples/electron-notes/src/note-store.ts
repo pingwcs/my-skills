@@ -99,6 +99,23 @@ export class NoteStore {
     });
   }
 
+  async importFrom(filePath: string): Promise<number> {
+    const imported = parseNotes(await readFile(filePath, 'utf8'));
+    const pending = this.writeQueue.then(async () => {
+      await this.persist(imported);
+      this.notes = imported.map(cloneNote);
+    });
+    this.writeQueue = pending.catch(() => undefined);
+    await pending;
+    return imported.length;
+  }
+
+  async exportTo(filePath: string): Promise<number> {
+    const snapshot = await this.list();
+    await this.writeNotes(filePath, snapshot);
+    return snapshot.length;
+  }
+
   private find(notes: Note[], id: string): Note {
     const note = notes.find((candidate) => candidate.id === id);
     if (!note) throw new Error('找不到要操作的笔记');
@@ -118,12 +135,16 @@ export class NoteStore {
   }
 
   private async persist(notes: Note[]): Promise<void> {
-    const directory = path.dirname(this.filePath);
-    const temporaryPath = `${this.filePath}.tmp`;
+    await this.writeNotes(this.filePath, notes);
+  }
+
+  private async writeNotes(filePath: string, notes: Note[]): Promise<void> {
+    const directory = path.dirname(filePath);
+    const temporaryPath = `${filePath}.${process.pid}.tmp`;
     await mkdir(directory, { recursive: true });
     try {
       await writeFile(temporaryPath, `${JSON.stringify(notes, null, 2)}\n`, 'utf8');
-      await rename(temporaryPath, this.filePath);
+      await rename(temporaryPath, filePath);
     } catch (error) {
       await rm(temporaryPath, { force: true }).catch(() => undefined);
       throw error;
