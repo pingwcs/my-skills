@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- CSP is injected by src/security.ts so development can allow only Vite HMR while production stays strict. -->
+    <title>Electron Notes</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar" aria-label="笔记导航">
+        <header class="brand">
+          <div>
+            <p class="eyebrow">Electron Notes</p>
+            <h1>我的笔记</h1>
+          </div>
+          <button class="new-note" id="new-note" type="button" aria-label="新建笔记">＋</button>
+        </header>
+        <p class="runtime" id="status">正在连接桌面运行时…</p>
+        <nav class="note-list" id="note-list" aria-label="笔记列表"></nav>
+        <p class="list-empty" id="list-empty" hidden>还没有笔记，点击右上角的＋开始。</p>
+        <footer><span id="note-count">0 篇笔记</span><span>保存在本地</span></footer>
+      </aside>
+
+      <section class="workspace" aria-label="笔记编辑器">
+        <div class="empty-state" id="empty-state">
+          <span class="empty-mark" aria-hidden="true">✦</span>
+          <h2>选择一篇笔记</h2>
+          <p>从左侧继续编辑，或创建一篇新笔记。</p>
+          <button id="empty-new-note" type="button">创建第一篇笔记</button>
+        </div>
+        <form class="editor" id="editor" hidden>
+          <label class="sr-only" for="note-title">笔记标题</label>
+          <input id="note-title" class="title-input" maxlength="80" placeholder="无标题笔记" autocomplete="off" />
+          <div class="editor-meta"><span id="edited-at"></span><span class="save-state">已保存到本地</span></div>
+          <label class="sr-only" for="note-body">笔记正文</label>
+          <textarea id="note-body" placeholder="从这里开始记录……" spellcheck="true"></textarea>
+        </form>
+      </section>
+    </main>
+    <script type="module" src="/src/renderer.ts"></script>
+  </body>
+</html>
